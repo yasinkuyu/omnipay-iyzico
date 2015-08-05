@@ -29,10 +29,9 @@ class PurchaseRequest extends AbstractRequest {
             'secret' => $this->getSecretKey(),
             'external_id' => $this->getTransId(),
             'mode' => $this->getTestMode() ? "test" : "live",
-            'response_mode' => 'SYNC',
             'installment' => true,
             
-            'type' => "CC.DB",
+            'type' => "CC.PA",
             'return_url' => "http://sanalmagaza.org",
             'amount' => $this->getAmountInteger(),
             'currency' => $this->getCurrency(),
@@ -63,12 +62,21 @@ class PurchaseRequest extends AbstractRequest {
             'customer_language' => 'tr',
             
         );
+
+        $data += array(
+            'card_number' => $card->getNumber(),
+            'card_expiry_month' => $card->getExpiryMonth(),
+            'card_expiry_year' => $card->getExpiryYear(),
+            'card_verification' => $card->getCvv(),
+            'card_holder_name' => '',
+            'card_brand' => $this->findCardBrand($card->getNumber()),
+        );
         
-         $items = $this->getItems();
+        $items = $this->getItems();
         if (!empty($items)) {
             foreach ($items as $key => $item) {
 
-                $data = array(
+                $data += array(
                     'item_id_[' . $key . ']' => $item->getIterator(),
                     'item_name_1[' . $key . ']' => $item->getName(),
                     'item_unit_quantity_[' . $key . ']' => 1,
@@ -78,13 +86,6 @@ class PurchaseRequest extends AbstractRequest {
             }
         }
         
-        $data['card_number'] = $card->getNumber();
-        $data['card_expiry_month'] = $card->getExpiryMonth();
-        $data['card_expiry_year'] = $card->getExpiryYear();
-        $data["card_verification"] = $card->getCvv();
-        $data["card_holder_name"] = $card->getFirstName() . " " . $card->getLastName();
-        $data["card_brand"] = $this->findCardBrand($card->getNumber());
- 
         return $data;
     }
 
@@ -105,19 +106,13 @@ class PurchaseRequest extends AbstractRequest {
                 'CURLOPT_POST' => 1
             )
         ));
-
+            
         $httpResponse = $this->httpClient->post($this->endpoint, $headers, $data)->send();
 
         return $this->response = new Response($this, $httpResponse->getBody());
     }
     
-    /**
-     * Finds appropriate card brand depending on card number
-     *
-     * @param string $cardNumber
-     *
-     * @return string
-     */
+    
     protected function findCardBrand($cardNumber) {
         $brand = "Invalid";
         $digitLength = strlen($cardNumber);
