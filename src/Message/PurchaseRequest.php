@@ -31,7 +31,7 @@ class PurchaseRequest extends AbstractRequest {
             'mode' => $this->getTestMode() ? "test" : "live",
             'installment' => true,
             
-            'type' => "CC.PA",
+            'type' => "CC.DB",
             'return_url' => "http://sanalmagaza.org",
             'amount' => $this->getAmountInteger(),
             'currency' => $this->getCurrency(),
