@@ -99,7 +99,6 @@ class PurchaseRequest extends AbstractRequest {
 
         $token = new Response($this, $httpResponse->getBody());
             
-        // Credit Card
         $pay = array(
             'card_number' => $this->getCard()->getNumber(),
             'card_expiry_month' => $this->getCard()->getExpiryMonth(),
@@ -110,7 +109,7 @@ class PurchaseRequest extends AbstractRequest {
         
             'pay' => 'Ödeme Yap',
             'version' => '1.0',
-            'response_mode' => 'SYNC', // 3D->ASYNC
+            'response_mode' => 'SYNC', //todo 3D->ASYNC
             'enable_3d_secure' => false,
             'currency' => $this->getCurrency(),
             'transaction_token' => $token->getCode(),
@@ -129,7 +128,11 @@ class PurchaseRequest extends AbstractRequest {
         return $this->response = new Response($this, $httpResponsePay->getBody());
     }
     
-    
+    /**
+     * @uguratar
+     * @param int $cardNumber
+     * @return string
+     */
     protected function findCardBrand($cardNumber) {
         $brand = "Invalid";
         $digitLength = strlen($cardNumber);
@@ -213,6 +216,5 @@ class PurchaseRequest extends AbstractRequest {
     public function setTransId($value) {
         return $this->setParameter('transId', $value);
     }
-
 
 }
