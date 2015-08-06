@@ -115,7 +115,7 @@ class PurchaseRequest extends AbstractRequest {
             'currency' => $this->getCurrency(),
             'transaction_token' => $token->getCode(),
             'installment-option' => $this->getInstallment(),
-            'connector_type' => 'Denizbank',
+            'connector_type' => $this->getBank(),
             'card_brand' => $this->findCardBrand($this->getCard()->getNumber()),
             'mode' => $this->getTestMode() ? "test" : "live",
         );
