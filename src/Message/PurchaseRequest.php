@@ -73,6 +73,7 @@ class PurchaseRequest extends AbstractRequest {
             'card_brand' => $this->findCardBrand($card->getNumber()),
         );
         
+        // List products
         $items = $this->getItems();
         if (!empty($items)) {
             foreach ($items as $key => $item) {
