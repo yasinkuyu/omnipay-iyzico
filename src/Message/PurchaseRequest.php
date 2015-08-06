@@ -13,6 +13,7 @@ use Omnipay\Common\Message\AbstractRequest;
  */
 class PurchaseRequest extends AbstractRequest {
 
+    protected $actionType = '';
     protected $endpoints = [
         'token' => 'https://api.iyzico.com/v2/create',
         'purchase' => 'https://iyziconnect.com/pay-with-transaction-token/',
@@ -86,7 +87,7 @@ class PurchaseRequest extends AbstractRequest {
 
         $httpResponse = $this->httpClient->post(
                         $this->endpoints['token'], $headers, $data
-                        )->send();
+                )->send();
 
         $token = new Response($this, $httpResponse->getBody());
 
@@ -108,12 +109,14 @@ class PurchaseRequest extends AbstractRequest {
             'mode' => $this->getTestMode() ? "test" : "live",
         );
 
+        $endpoint = $this->endpoints['purchase'];
+
+        if ($this->actionType == "refund")
+            $endpoint = $this->endpoints['refund'];
+
         $httpResponsePay = $this->httpClient->post(
-                           $this->endpoints['purchase'], 
-                           $headers, 
-                           $pay, 
-                           ['allow_redirects' => false]
-                           )->send();
+                        $endpoint, $headers, $pay, ['allow_redirects' => false]
+                        )->send();
 
         return $this->response = new Response($this, $httpResponsePay->getBody());
     }
@@ -121,7 +124,6 @@ class PurchaseRequest extends AbstractRequest {
     /**
      * 
      * Get credit cart provider
-     * 
      * 
      * @param int $cardNumber
      * @return string
