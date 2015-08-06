@@ -30,7 +30,6 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
         } catch (\Exception $ex) {
             throw new InvalidResponseException();
         }
-        echo var_dump($this->data);
     }
 
     /**
@@ -67,7 +66,7 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
      */
     public function getTransactionReference() {
 
-        return $this->isSuccessful() ? $this->data->transaction_token: '';
+        return $this->isSuccessful() ? $this->data->transaction_token : '';
     }
 
     /**
@@ -77,7 +76,7 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
      */
     public function getMessage() {
         if ($this->isSuccessful()) {
-            return $this->data->transaction->state;
+            return $this->data->response->message . " " . $this->data->code_snippet;
         }
         return $this->data->response->error_message;
     }

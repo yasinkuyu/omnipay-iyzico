@@ -23,7 +23,8 @@ class Gateway extends AbstractGateway {
             'secretkey' => '',
             'installment' => '00',
             'type' => 'CC.DB',
-            'currency' => 'TRY'
+            'currency' => 'TRY',
+            'testMode' => false
         );
     }
 

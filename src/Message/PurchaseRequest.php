@@ -32,7 +32,7 @@ class PurchaseRequest extends AbstractRequest {
             'installment' => true,
             
             'type' => "CC.DB",
-            'return_url' => "http://sanalmagaza.org",
+            'return_url' => $this->getReturnUrl(),
             'amount' => $this->getAmountInteger(),
             'currency' => $this->getCurrency(),
             'descriptor' => $this->getDescription(),
