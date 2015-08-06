@@ -15,6 +15,7 @@ class PurchaseRequest extends AbstractRequest {
     
     protected $endpoints = [
         'purchase' => 'https://api.iyzico.com/v2/create',
+        'refund' => 'https://api.iyzico.com/v2/refund',
         'status' => 'https://api.iyzico.com/getStatus'
     ];
  
