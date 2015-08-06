@@ -11,8 +11,5 @@ namespace Omnipay\Iyzico\Message;
  */
 class VoidRequest extends PurchaseRequest {
 
-    public function getData() {
-
-    }
-
+    
 }

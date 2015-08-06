@@ -21,11 +21,15 @@ class Gateway extends AbstractGateway {
         return array(
             'apiid' => '',
             'secretkey' => '',
-            'installment' => '00',
+            'installment' => true,
             'type' => 'CC.DB',
             'currency' => 'TRY',
             'testMode' => false
         );
+    }
+
+    public function init(array $parameters = array()) {
+        return $this->createRequest('\Omnipay\Iyzico\Message\InitRequest', $parameters);
     }
 
     public function authorize(array $parameters = array()) {
