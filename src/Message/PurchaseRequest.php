@@ -2,7 +2,6 @@
 
 namespace Omnipay\Iyzico\Message;
 
-use DOMDocument;
 use Omnipay\Common\Message\AbstractRequest;
 
 /**
