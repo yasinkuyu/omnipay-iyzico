@@ -14,8 +14,10 @@ use Omnipay\Common\Message\AbstractRequest;
  */
 class PurchaseRequest extends AbstractRequest {
     
-    protected $endpoint = 'https://api.iyzico.com/v2/create';
-    protected $endpoints = 'https://api.iyzico.com/getStatus';
+    protected $endpoints = [
+        'purchase' => 'https://api.iyzico.com/v2/create',
+        'status' => 'https://api.iyzico.com/getStatus'
+    ];
  
     public function getData() {
 
@@ -107,7 +109,7 @@ class PurchaseRequest extends AbstractRequest {
             )
         ));
             
-        $httpResponse = $this->httpClient->post($this->endpoint, $headers, $data)->send();
+        $httpResponse = $this->httpClient->post($this->endpoints['purchase'], $headers, $data)->send();
 
         return $this->response = new Response($this, $httpResponse->getBody());
     }
