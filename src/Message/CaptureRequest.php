@@ -11,8 +11,6 @@ namespace Omnipay\Iyzico\Message;
  */
 class CaptureRequest extends PurchaseRequest {
 
-    public function getData() {
-
-    }
+    protected $actionType = 'CC.DB';
 
 }

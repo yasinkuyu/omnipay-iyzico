@@ -13,7 +13,7 @@ use Omnipay\Common\Message\AbstractRequest;
  */
 class PurchaseRequest extends AbstractRequest {
 
-    protected $actionType = '';
+    protected $actionType = 'CC.DB';
     protected $endpoints = [
         'token' => 'https://api.iyzico.com/v2/create',
         'purchase' => 'https://iyziconnect.com/pay-with-transaction-token/',
@@ -23,7 +23,7 @@ class PurchaseRequest extends AbstractRequest {
 
     public function getData() {
 
-        $this->validate('amount', 'card');
+        $this->validate('card');
         $this->getCard()->validate();
 
         $card = $this->getCard();
@@ -34,8 +34,10 @@ class PurchaseRequest extends AbstractRequest {
             'secret' => $this->getSecretKey(),
             'installment' => true,
             'external_id' => $this->getOrderId(),
-            'type' => "CC.DB",
+            'transaction_id' => $this->getTransId(),
+            'type' => $this->actionType,
             'return_url' => $this->getReturnUrl(),
+            
             'amount' => $this->getAmountInteger(),
             'currency' => $this->getCurrency(),
             'descriptor' => $this->getDescription(),
@@ -74,7 +76,7 @@ class PurchaseRequest extends AbstractRequest {
                 );
             }
         }
-
+        
         return $data;
     }
 
@@ -85,40 +87,49 @@ class PurchaseRequest extends AbstractRequest {
             'Content-Type' => 'application/x-www-form-urlencoded'
         );
 
-        $httpResponse = $this->httpClient->post(
-                        $this->endpoints['token'], $headers, $data
-                )->send();
+        if ($this->actionType === "CC.RF") {
 
-        $token = new Response($this, $httpResponse->getBody());
+            $httpResponse = $this->httpClient->post(
+                            $this->endpoints['refund'], 
+                            $headers, 
+                            $data
+                    )->send();
 
-        $pay = array(
-            'card_number' => $this->getCard()->getNumber(),
-            'card_expiry_month' => $this->getCard()->getExpiryMonth(),
-            'card_expiry_year' => $this->getCard()->getExpiryYear(),
-            'card_verification' => $this->getCard()->getCvv(),
-            'card_holder_name' => '',
-            'card_brand' => $this->getCardProvider($this->getCard()->getNumber()),
-            'pay' => 'Ödeme Yap',
-            'version' => '1.0',
-            'response_mode' => 'SYNC', //todo 3D->ASYNC
-            'enable_3d_secure' => false,
-            'currency' => $this->getCurrency(),
-            'transaction_token' => $token->getCode(),
-            'installment-option' => $this->getInstallment(),
-            'connector_type' => $this->getBank(),
-            'mode' => $this->getTestMode() ? "test" : "live",
-        );
+            return $this->response = new Response($this, $httpResponse->getBody());
+            
+        } else {
 
-        $endpoint = $this->endpoints['purchase'];
 
-        if ($this->actionType == "refund")
-            $endpoint = $this->endpoints['refund'];
+            $httpResponse = $this->httpClient->post(
+                            $this->endpoints['token'], $headers, $data
+                    )->send();
 
-        $httpResponsePay = $this->httpClient->post(
-                        $endpoint, $headers, $pay, ['allow_redirects' => false]
-                        )->send();
+            $token = new Response($this, $httpResponse->getBody());
 
-        return $this->response = new Response($this, $httpResponsePay->getBody());
+            $pay = array(
+                'card_number' => $this->getCard()->getNumber(),
+                'card_expiry_month' => $this->getCard()->getExpiryMonth(),
+                'card_expiry_year' => $this->getCard()->getExpiryYear(),
+                'card_verification' => $this->getCard()->getCvv(),
+                'card_holder_name' => '',
+                'card_brand' => $this->getCardProvider($this->getCard()->getNumber()),
+                'pay' => 'Ödeme Yap',
+                'version' => '1.0',
+                'response_mode' => 'SYNC', //todo 3D->ASYNC
+                'enable_3d_secure' => false,
+                'currency' => $this->getCurrency(),
+                'transaction_token' => $token->getCode(),
+                'installment-option' => $this->getInstallment(),
+                'connector_type' => $this->getBank(),
+                'mode' => $this->getTestMode() ? "test" : "live",
+            );
+
+            $httpResponsePay = $this->httpClient->post(
+                            $this->endpoints['purchase'], $headers, $pay, ['allow_redirects' => false]
+                    )->send();
+
+            return $this->response = new Response($this, $httpResponsePay->getBody());
+        }
     }
 
     /**

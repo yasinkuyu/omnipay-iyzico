@@ -10,9 +10,7 @@ namespace Omnipay\Iyzico\Message;
  * http://www.github.com/yasinkuyu/omnipay-iyzico
  */
 class RefundRequest extends PurchaseRequest {
-
-    public function getData() {
-
-    }
+    
+    protected $actionType = 'refund';
 
 }

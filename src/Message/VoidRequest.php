@@ -10,6 +10,7 @@ namespace Omnipay\Iyzico\Message;
  * http://www.github.com/yasinkuyu/omnipay-iyzico
  */
 class VoidRequest extends PurchaseRequest {
-
     
+    protected $actionType = 'CC.RV';
+   
 }
