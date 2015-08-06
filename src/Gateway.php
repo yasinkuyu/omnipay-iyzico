@@ -26,7 +26,8 @@ class Gateway extends AbstractGateway {
             'type' => 'CC.DB',
             'currency' => 'TRY',
             'orderId' => rand(),
-            'testMode' => false
+            'testMode' => false,
+            'returnUrl' => 'http://google.com'
         );
     }
 
