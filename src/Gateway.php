@@ -19,17 +19,15 @@ class Gateway extends AbstractGateway {
 
     public function getDefaultParameters() {
         return array(
+            'bank' => 'Denizbank',
             'apiid' => '',
             'secretkey' => '',
-            'installment' => true,
+            'installment' => '',
             'type' => 'CC.DB',
             'currency' => 'TRY',
+            'orderId' => rand(),
             'testMode' => false
         );
-    }
-
-    public function init(array $parameters = array()) {
-        return $this->createRequest('\Omnipay\Iyzico\Message\InitRequest', $parameters);
     }
 
     public function authorize(array $parameters = array()) {
@@ -50,6 +48,14 @@ class Gateway extends AbstractGateway {
 
     public function void(array $parameters = array()) {
         return $this->createRequest('\Omnipay\Iyzico\Message\VoidRequest', $parameters);
+    }
+
+    public function getBank() {
+        return $this->getParameter('bank');
+    }
+
+    public function setBank($value) {
+        return $this->setParameter('bank', $value);
     }
 
     public function getApiId() {
