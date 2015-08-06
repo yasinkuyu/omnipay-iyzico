@@ -38,11 +38,8 @@ The following gateways are provided by this package:
 
 Gateway Methods
 
-* authorize($options) - authorize an amount on the customer's card
-* capture($options) - capture an amount you have previously authorized
 * purchase($options) - authorize and immediately capture an amount on the customer's card
 * refund($options) - refund an already processed transaction
-* void($options) - generally can only be called up to 24 hours after submitting a transaction
 
 For general usage instructions, please see the main [Omnipay](https://github.com/thephpleague/omnipay)
 repository.
@@ -61,74 +58,55 @@ PHPUnit is a programmer-oriented testing framework for PHP. It is an instance of
             public function index() {
                 $gateway = Omnipay::create('Iyzico');
 
-                $gateway->setMerchantId("6700000067");
-                $gateway->setTerminalId("67000067");
+                $gateway->setBank("Denizbank");
+                $gateway->setApiId("im0569328007a12b0c09eb1413802353");
+                $gateway->setSecretKey("im061148300b91d40a48681413802353");
+
                 $gateway->setTestMode(TRUE);
 
                 $options = [
-                    'number'        => '4506341010205499',
-                    'expiryMonth'   => '03',
-                    'expiryYear'    => '2017',
-                    'cvv'           => '000'
+                    'number'        => '4242424242424242',
+                    'expiryMonth'   => '10',
+                    'expiryYear'    => '2015',
+                    'cvv'           => '000',
+                    'fistname'      => 'Yasin',
+                    'lastname'      => 'Kuyu'
                 ];
 
                 $response = $gateway->purchase(
                 [
-                    //'installment'  => '2', # Taksit
-                    //'multiplepoint' => 1, // Set money points (Maxi puan gir)
-                    //'extrapoint'   => 150, // Set money points (Maxi puan gir)
+                    'installment'   => 2,
+                    'transId'       => '2233333333333333',
                     'amount'        => 10.00,
-                    'type'          => 'sale',
-                    'orderid'       => '1s3456z89012345678901234',
+                    'currency'      => 'TRY',
                     'card'          => $options
                 ]
                 )->send();
 
                 $response = $gateway->authorize(
                 [
-                    'type'          => 'auth',
-                    'transId'       => 'ORDER-365123',
-                    'card'          => $options
-                ]
-                )->send();
-
-                $response = $gateway->capture(
-                [
-                    'type'          => 'capt',
-                    'transId'       => 'ORDER-365123',
-                    'amount'        => 1.00,
-                    'currency'      => 'TRY',
+                    'transId'       => 'MTQzODg3NzgwNAhQeb3hfNMVlSc2JRkb',
+                    'amount'        => 10.00,
                     'card'          => $options
                 ]
                 )->send();
 
                 $response = $gateway->refund(
                 [
-                    'type'          => 'return',
-                    'transId'       => 'ORDER-365123',
-                    'amount'        => 1.00,
+                    'transId'       => 'MTQzODg3NzgwNAhQeb3hfNMVlSc2JRkb',
+                    //'amount'        => 1.00,
                     'currency'      => 'TRY',
                     'card'          => $options
                 ]
                 )->send();
 
-                $response = $gateway->void(
-                [
-                    'type'          => 'reverse',
-                    'transId'       => 'ORDER-365123',
-                    'authcode'      => '123123',
-                    'amount'        => 1.00,
-                    'currency'      => 'TRY',
-                    'card'          => $options
-                ]
-                )->send();
 
                 if ($response->isSuccessful()) {
-                    //echo $response->getTransactionReference();
+                    echo $response->getTransactionReference();
                     echo $response->getMessage();
-                } else {
+                }else{
                     echo $response->getError();
-                }
+                } 
 
                 // Debug
                 //var_dump($response);
