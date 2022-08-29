@@ -10,7 +10,17 @@
 [Omnipay](https://github.com/thephpleague/omnipay) is a framework agnostic, multi-gateway payment
 processing library for PHP 5.3+. This package implements Iyzico (Turkish Payment Gateways) support for Omnipay.
 
-Iyzico sanal pos hizmeti için omnipay kütüphanesi.
+# Readme TR
+Iyzico v3 (3D Secure) sanal pos hizmeti için omnipay kütüphanesi.
+
+Test ortamım için https://sandbox-merchant.iyzipay.com/auth adresinden kayıt olup hemen sonrasında(mail onaysız) login olabilirsiniz. 
+
+Login olduktan sonra karşınıza çıkan “Cep Telefonu Doğrulama” ekranına sms kodu olarak “123456" yazıp giriş sağlayabilirsiniz. Ayarlar sayfasından api anahtarları bölümünden API anahtarı ve güvenlik anahtarı bilgilerine erişebiliyorsunuz. 
+
+Sandbox/test base url https://sandbox-api.iyzipay.com/ set edildiğinde githubdaki clientlarımız
+Test kartları https://dev.iyzipay.com/tr/test-kartlari
+
+Ay ve yıl olarak herhangi bir ileri değer verebilirsiniz. Cvv içinde aynı şekilde 3 haneli random bir değer verebilirsiniz. 3D secure şifresi : 283126
 
 ## Installation
 
@@ -34,7 +44,7 @@ And run composer to update your dependencies:
 
 The following gateways are provided by this package:
 
-* Iyzico
+* Iyzico v3
 
 Gateway Methods
 
@@ -48,90 +58,18 @@ repository.
 
 PHPUnit is a programmer-oriented testing framework for PHP. It is an instance of the xUnit architecture for unit testing frameworks.
 
+## Requirements
+    composer require iyzico/iyzipay-php
+
+    To use the bindings, use Composer's autoload:
+
+    require_once('vendor/autoload.php');
+
 ## Sample App
-        <?php defined('BASEPATH') OR exit('No direct script access allowed');
-
-        use Omnipay\Omnipay;
-
-        class IyzicoTest extends CI_Controller {
-
-            public function index() {
-                $gateway = Omnipay::create('Iyzico');
-
-                $gateway->setBank("Denizbank");
-                $gateway->setApiId("im0569328007a12b0c09eb1413802353");
-                $gateway->setSecretKey("im061148300b91d40a48681413802353");
-
-                $gateway->setTestMode(TRUE);
-
-                $options = [
-                    'number'        => '4242424242424242',
-                    'expiryMonth'   => '10',
-                    'expiryYear'    => '2015',
-                    'cvv'           => '000',
-                    'fistname'      => 'Yasin',
-                    'lastname'      => 'Kuyu'
-                ];
-
-                $response = $gateway->purchase(
-                [
-                    'installment'   => 2,
-                    'transId'       => '2233333333333333',
-                    'amount'        => 10.00,
-                    'currency'      => 'TRY',
-                    'card'          => $options
-                ]
-                )->send();
-
-                $response = $gateway->authorize(
-                [
-                    'transId'       => 'MTQzODg3NzgwNAhQeb3hfNMVlSc2JRkb',
-                    'amount'        => 10.00,
-                    'card'          => $options
-                ]
-                )->send();
-
-                $response = $gateway->refund(
-                [
-                    'transId'       => 'MTQzODg3NzgwNAhQeb3hfNMVlSc2JRkb',
-                    //'amount'        => 1.00,
-                    'currency'      => 'TRY',
-                    'card'          => $options
-                ]
-                )->send();
-
-
-                if ($response->isSuccessful()) {
-                    echo $response->getTransactionReference();
-                    echo $response->getMessage();
-                }else{
-                    echo $response->getError();
-                } 
-
-                // Debug
-                //var_dump($response);
-
-            }
-
-        }
-
-
-## NestPay (EST)
-(İş Bankası, Akbank, Finansbank, Denizbank, Kuveytturk, Halkbank, Anadolubank, ING Bank, Citibank, Cardplus) gateway for Omnipay payment processing library
-https://github.com/yasinkuyu/omnipay-nestpay
-
-
-## Postnet
-Posnet (Yapı Kredi, Vakıfbank, Anadolubank) gateway for Omnipay payment processing library
-https://github.com/yasinkuyu/omnipay-posnet
-
-## GVP (Granti Sanal Pos)
-Gvp (Garanti, Denizbank, TEB, ING, Şekerbank, TFKB) gateway for Omnipay payment processing library
-https://github.com/yasinkuyu/omnipay-gvp
-
-## BKM Express
-BKM Express gateway for Omnipay payment processing library
-https://github.com/yasinkuyu/omnipay-bkm
+        
+    purchase.php
+    refund.php
+    void.php
 
 ## Support
 

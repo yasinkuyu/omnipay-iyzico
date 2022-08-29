@@ -10,7 +10,5 @@ namespace Omnipay\Iyzico\Message;
  * http://www.github.com/yasinkuyu/omnipay-iyzico
  */
 class AuthorizeRequest extends PurchaseRequest {
-
-        protected $actionType = '';
-
+    protected $actionType = 'authorize';
 }

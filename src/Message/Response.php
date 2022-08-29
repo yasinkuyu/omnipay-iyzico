@@ -26,7 +26,9 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
     public function __construct(RequestInterface $request, $data) {
         $this->request = $request;
         try {
-            $this->data = json_decode(strval($data));
+
+            $this->data = json_decode($data->getRawResult());
+
         } catch (\Exception $ex) {
             throw new InvalidResponseException();
         }
@@ -38,8 +40,9 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
      * @return bool
      */
     public function isSuccessful() {
-        if (isset($this->data->response->state))
-            return (string) $this->data->response->state === 'success';
+        if (isset($this->data->status))
+            return $this->data->status === 'success';
+        return false;
     }
 
     /**
@@ -48,7 +51,7 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
      * @return bool
      */
     public function isRedirect() {
-        return false; //todo
+        return false; 
     }
 
     /**
@@ -57,7 +60,11 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
      * @return string|null code
      */
     public function getCode() {
-        return $this->isSuccessful() ? $this->data->transaction_token : '';
+        return isset($this->data->conversationId) ? $this->data->conversationId : '';
+    }
+
+    public function getOrderId() {
+        return $this->getCode();
     }
 
     /**
@@ -66,8 +73,7 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
      * @return string
      */
     public function getTransactionReference() {
-
-        return $this->isSuccessful() ? $this->data->transaction->transaction_id : '';
+        return isset($this->data->paymentId) ? $this->data->paymentId : '';
     }
 
     /**
@@ -76,15 +82,7 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
      * @return string
      */
     public function getMessage() {
-        if ($this->isSuccessful()) {
-            if (isset($this->data->code_snippet)) {
-                return $this->data->code_snippet;
-            } else {
-                if (isset($this->data->response->message))
-                    return $this->data->response->message;
-            }
-        }
-        return $this->getError();
+        return isset($this->data->message) ? $this->data->message : $this->getError();
     }
 
     /**
@@ -93,8 +91,8 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
      * @return string
      */
     public function getError() {
-        if (isset($this->data->response->error_message))
-            return $this->data->response->error_message;
+        if (isset($this->data->errorMessage))
+            return $this->data->errorMessage . " errorCode:" . $this->data->errorCode;
     }
 
     /**
@@ -105,9 +103,9 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
     public function getRedirectUrl() {
         if ($this->isRedirect()) {
             $data = array(
-                'TransId' => $this->data->transaction_id
+                'transId' => $this->data->conversationId
             );
-            return $this->getRequest()->getEndpoint() . '/test/index?' . http_build_query($data);
+            return $this->getRequest()->getEndpoint() . '?' . http_build_query($data);
         }
     }
 

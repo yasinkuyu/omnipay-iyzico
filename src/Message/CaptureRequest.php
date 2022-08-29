@@ -10,7 +10,5 @@ namespace Omnipay\Iyzico\Message;
  * http://www.github.com/yasinkuyu/omnipay-iyzico
  */
 class CaptureRequest extends PurchaseRequest {
-
-    protected $actionType = 'CC.DB';
-
+    protected $actionType = 'capture';
 }
