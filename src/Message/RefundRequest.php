@@ -12,29 +12,9 @@ namespace Omnipay\Iyzico\Message;
 class RefundRequest extends PurchaseRequest {
     
     protected $actionType = 'refund';
-
-    public function getData() {
-
-        $this->validate('card');
-        $this->getCard()->validate();
-
-        $card = $this->getCard();
-
-        $data = array(
-            'external_id' => $this->getOrderId(),
-            'transaction_id' => $this->getTransId(),
-             
-        );
-  
-        return $data;
-    }
-
+ 
     public function sendData($data) {
-        
-        $this->validate('card');
-        $this->getCard()->validate();
-
-        $card = $this->getCard();
+         
         $mode = $this->getTestMode() ? "test" : "live";
 
         $options = new \Iyzipay\Options();
@@ -43,9 +23,9 @@ class RefundRequest extends PurchaseRequest {
         $options->setBaseUrl($this->endpoints[$mode]);
 
         $request = new \Iyzipay\Request\CreateRefundRequest();
-        $request->setLocale(\Iyzipay\Model\Locale::EN);
-        $request->setConversationId($this->getOrderId());
-        $request->setPaymentTransactionId($this->getTransId());
+        $request->setLocale(\Iyzipay\Model\Locale::TR);
+        $request->setConversationId($this->getConversationId());
+        $request->setPaymentTransactionId($this->getPaymentTransactionId());
         $request->setPrice($this->getAmount());
 
         switch ($this->getCurrency()) {

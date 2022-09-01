@@ -28,7 +28,6 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
         try {
 
             $this->data = json_decode($data->getRawResult());
-
         } catch (\Exception $ex) {
             throw new InvalidResponseException();
         }
@@ -59,21 +58,26 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
      *
      * @return string|null code
      */
-    public function getCode() {
+    public function getConversationId() {
         return isset($this->data->conversationId) ? $this->data->conversationId : '';
     }
-
-    public function getOrderId() {
-        return $this->getCode();
-    }
-
+ 
     /**
      * Get transaction reference
      *
      * @return string
      */
-    public function getTransactionReference() {
+    public function getPaymentId() {
         return isset($this->data->paymentId) ? $this->data->paymentId : '';
+    }
+
+    /**
+     * Get payment transaction id
+     *
+     * @return string
+     */
+    public function getPaymentTransactionId() {
+        return isset($this->data->paymentTransactionId) ? $this->data->paymentTransactionId : '';
     }
 
     /**

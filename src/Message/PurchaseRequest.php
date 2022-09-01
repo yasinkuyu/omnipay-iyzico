@@ -16,25 +16,11 @@ class PurchaseRequest extends AbstractRequest {
 
     protected $endpoints = [
         'test' => 'https://sandbox-api.iyzipay.com',
-        'live' => 'https://api.iyzipay.com',
+        'live' => 'https://api.iyzipay.com'
     ];
-  
-    public function getData() {
 
-        $this->validate('card');
-        $this->getCard()->validate();
-
-        $card = $this->getCard();
-
-        $data = array(
-            'external_id' => $this->getOrderId(),
-            'transaction_id' => $this->getTransId(),
-             
-        );
-  
-        return $data;
-    }
-
+    public function getData() {}
+ 
     public function sendData($data) {
         
         $this->validate('card');
@@ -50,7 +36,7 @@ class PurchaseRequest extends AbstractRequest {
 
         $request = new \Iyzipay\Request\CreatePaymentRequest();
         $request->setLocale(\Iyzipay\Model\Locale::TR);
-        $request->setConversationId($this->getOrderId()); // $token->getCode()
+        $request->setConversationId($this->getConversationId());
         $request->setPrice($this->getAmount()); // or getAmountInteger
         $request->setPaidPrice($this->getAmount());
 
@@ -76,7 +62,7 @@ class PurchaseRequest extends AbstractRequest {
         $request->setPaymentChannel(\Iyzipay\Model\PaymentChannel::WEB);
         $request->setPaymentGroup(\Iyzipay\Model\PaymentGroup::PRODUCT);
 
-        if($this->get3dSecure()){
+        if($this->getSecure3d()){
             $request->setCallbackUrl($this->getReturnUrl());
         }
         
@@ -90,7 +76,7 @@ class PurchaseRequest extends AbstractRequest {
         $request->setPaymentCard($paymentCard);
 
         $buyer = new \Iyzipay\Model\Buyer();
-        $buyer->setId($this->getOrderId());
+        $buyer->setId($this->getConversationId());
         $buyer->setName($card->getFirstName());
         $buyer->setSurname($card->getLastName());
         $buyer->setGsmNumber($card->getPhone());
@@ -143,7 +129,7 @@ class PurchaseRequest extends AbstractRequest {
 
         $request->setBasketItems($basketItems);
         
-        if($this->get3dSecure()){ //3d
+        if($this->getSecure3d()){ //3d
             $data = \Iyzipay\Model\ThreedsInitialize::create($request, $options);
         }else{
             $data = \Iyzipay\Model\Payment::create($request, $options);
@@ -154,7 +140,7 @@ class PurchaseRequest extends AbstractRequest {
         if($data->getStatus() == "success"){
 
             // display 3ds form
-            if($this->get3dSecure()){
+            if($this->getSecure3d()){
                 echo $data->getHtmlContent(); 
             }
         }
@@ -163,6 +149,30 @@ class PurchaseRequest extends AbstractRequest {
 
     }
  
+    public function getConversationId() {
+        return $this->getParameter('conversationId');
+    }
+
+    public function setConversationId($value) {
+        return $this->setParameter('conversationId', $value);
+    }
+
+    public function getPaymentId() {
+        return $this->getParameter('paymentId');
+    }
+
+    public function setPaymentId($value) {
+        return $this->setParameter('paymentId', $value);
+    }
+
+    public function getPaymentTransactionId() {
+        return $this->getParameter('paymentTransactionId');
+    }
+
+    public function setPaymentTransactionId($value) {
+        return $this->setParameter('paymentTransactionId', $value);
+    }
+
     public function getIdentityNumber() {
         return $this->getParameter('identityNumber');
     }
@@ -171,12 +181,12 @@ class PurchaseRequest extends AbstractRequest {
         return $this->setParameter('identityNumber', $value);
     }
 
-    public function get3dSecure() {
-        return $this->getParameter('3dSecure');
+    public function getSecure3d() {
+        return $this->getParameter('secure3d');
     }
 
-    public function set3dSecure($value) {
-        return $this->setParameter('3dSecure', $value);
+    public function setSecure3d($value) {
+        return $this->setParameter('secure3d', $value);
     }
 
     public function getBank() {
@@ -218,21 +228,5 @@ class PurchaseRequest extends AbstractRequest {
     public function setType($value) {
         return $this->setParameter('type', $value);
     }
-
-    public function getOrderId() {
-        return $this->getParameter('orderid');
-    }
-
-    public function setOrderId($value) {
-        return $this->setParameter('orderid', $value);
-    }
-
-    public function getTransId() {
-        return $this->getParameter('transId');
-    }
-
-    public function setTransId($value) {
-        return $this->setParameter('transId', $value);
-    }
-
+ 
 }

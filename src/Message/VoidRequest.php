@@ -26,8 +26,8 @@ class VoidRequest extends PurchaseRequest {
 
         $request = new \Iyzipay\Request\CreateCancelRequest();
         $request->setLocale(\Iyzipay\Model\Locale::TR);
-        $request->setConversationId($this->getOrderId());
-        $request->setPaymentId($this->getTransId());
+        $request->setConversationId($this->getConversationId());
+        $request->setPaymentId($this->getPaymentId());
         $request->setIp($this->getClientIp());
 
         $data = \Iyzipay\Model\Cancel::create($request, $options);

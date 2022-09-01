@@ -4,15 +4,16 @@
 
     $response = $gateway->void(
     [
-        'orderId'       => '12345', # conversationId
-        'transId'       => '18177789',
-        'card'          => $options
+        'conversationId'    => $_GET['conversationId'], // orderid kullanılabilir
+        'paymentId'         => $_GET['paymentId'],
+        'card'              => $options
     ]
     )->send();
 
     if ($response->isSuccessful()) {
-        echo "conversationId: " . $response->getOrderId() . PHP_EOL;
-        echo "paymentId: " . $response->getTransactionReference(). PHP_EOL;
+        echo " conversationId: " . $response->getConversationId() . PHP_EOL;
+        echo " paymentId: " . $response->getPaymentId(). PHP_EOL;
+        echo " paymentTransactionId: " . $response->getPaymentTransactionId(). PHP_EOL;
         echo $response->getMessage(). PHP_EOL;
     }else{
         echo $response->getError();

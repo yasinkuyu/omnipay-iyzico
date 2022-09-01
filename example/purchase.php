@@ -5,21 +5,21 @@
     $response = $gateway->purchase(
     [
         'installment'   => 4,
-        'orderId'       => '12345', # conversationId
-        'amount'        => 6.00,
+        'conversationId'=> '123456', # conversationId
+        'amount'        => 9.00,
         'currency'      => 'TRY',
         'card'          => $options,
 
-        '3dSecure'      => true,
+        'secure3d'      => true,
         'identityNumber'=> '123456789011', // TC Number
 
-        'returnUrl'     => "http://local.desktop/callback.php",
+        'returnUrl'     => "http://local.iyzico/callback.php",
 
         'items' => array(
             array(
                 'id' => 1,
                 'name' => 10,
-                'price' => 6.00, // product totals must be equal to *amount*
+                'price' => 9.00, // product totals must be equal to *amount*
                 'description' => 'Product 1 Desc',
                 'quantity' => 2
             )
@@ -28,8 +28,9 @@
     )->send();
     
     if ($response->isSuccessful()) {
-        echo "conversationId: " . $response->getOrderId() . PHP_EOL;
-        echo "paymentId: " . $response->getTransactionReference(). PHP_EOL;
+        echo " conversationId: " . $response->getConversationId() . PHP_EOL;
+        echo " paymentId: " . $response->getPaymentId(). PHP_EOL;
+        echo " paymentTransactionId: " . $response->getPaymentTransactionId(). PHP_EOL;
         echo $response->getMessage(). PHP_EOL;
     }else{
         echo $response->getError();

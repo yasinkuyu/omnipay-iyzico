@@ -25,7 +25,7 @@ class Gateway extends AbstractGateway {
             'currency' => 'TRY',
             'orderId' => rand(),
             'testMode' => false,
-            '3dSecure' => true,
+            'secure3d' => true,
             'identityNumber' => '',
             'returnUrl' => 'http://google.com'
         );
