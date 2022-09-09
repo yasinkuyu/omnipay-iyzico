@@ -13,7 +13,7 @@
         'secure3d'      => true,
         'identityNumber'=> '123456789011', // TC Number
 
-        'returnUrl'     => "http://local.iyzico/callback.php",
+        'returnUrl'     => "http://local.iyzico/purchase_callback.php",
 
         'items' => array(
             array(

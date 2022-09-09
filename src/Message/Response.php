@@ -45,6 +45,56 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
     }
 
     /**
+     * Get is action status
+     *
+     * @return string
+     */
+    public function getStatus(){
+        if (isset($this->data->status))
+        return $this->data->status;
+    }
+
+    /**
+     * Get is payment status
+     *
+     * @return string
+     */
+    public function getPaymentStatus(){
+        if (isset($this->data->paymentStatus))
+        return $this->data->paymentStatus;
+    }
+
+    /**
+     * Get is html content for payment
+     *
+     * @return string
+     */
+    public function getCheckoutFormContent(){
+        if (isset($this->data->checkoutFormContent))
+        return $this->data->checkoutFormContent;
+    }
+
+    /**
+     * Get is iyzico payment page url
+     *
+     * @return string
+     */
+    public function getPayWithIyzicoPageUrl(){
+        if (isset($this->data->payWithIyzicoPageUrl))
+        return $this->data->payWithIyzicoPageUrl;
+    }
+
+    /**
+     * Get is payment page url
+     *
+     * @return string
+     */
+    public function getPaymentPageUrl(){
+        if (isset($this->data->paymentPageUrl))
+        return $this->data->paymentPageUrl;
+    }
+    
+    /**
      * Get is redirect
      *
      * @return bool
@@ -60,6 +110,15 @@ class Response extends AbstractResponse implements RedirectResponseInterface {
      */
     public function getConversationId() {
         return isset($this->data->conversationId) ? $this->data->conversationId : '';
+    }
+ 
+    /**
+     * Get transaction token
+     *
+     * @return string
+     */
+    public function getToken() {
+        return isset($this->data->token) ? $this->data->token : '';
     }
  
     /**

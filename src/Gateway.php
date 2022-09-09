@@ -22,6 +22,8 @@ class Gateway extends AbstractGateway {
             'apiid' => '',
             'secretkey' => '',
             'installment' => '',
+            'token' => '',
+            'enabled_installments' => array(2, 3, 6, 9),
             'currency' => 'TRY',
             'orderId' => rand(),
             'testMode' => false,
@@ -41,6 +43,14 @@ class Gateway extends AbstractGateway {
 
     public function purchase(array $parameters = array()) {
         return $this->createRequest('\Omnipay\Iyzico\Message\PurchaseRequest', $parameters);
+    }
+
+    public function checkout(array $parameters = array()) {
+        return $this->createRequest('\Omnipay\Iyzico\Message\CheckoutRequest', $parameters);
+    }
+
+    public function checkout_status(array $parameters = array()) {
+        return $this->createRequest('\Omnipay\Iyzico\Message\CheckoutStatusRequest', $parameters);
     }
 
     public function refund(array $parameters = array()) {
@@ -67,6 +77,13 @@ class Gateway extends AbstractGateway {
         return $this->setParameter('secretKey', $value);
     }
 
+    public function getToken() {
+        return $this->getParameter('token');
+    }
+
+    public function setToken($value) {
+        return $this->setParameter('token', $value);
+    }
 
     public function getIdentityNumber() {
         return $this->getParameter('identityNumber');
@@ -84,6 +101,14 @@ class Gateway extends AbstractGateway {
         return $this->setParameter('installment', $value);
     }
 
+    public function getEnabledInstallments() {
+        return $this->getParameter('enabled_installments');
+    }
+
+    public function setEnabledInstallments($value) {
+        return $this->setParameter('enabled_installments', $value);
+    }
+ 
     public function getType() {
         return $this->getParameter('type');
     }
