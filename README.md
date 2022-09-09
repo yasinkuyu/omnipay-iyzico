@@ -51,6 +51,9 @@ Gateway Methods
 * purchase($options) - authorize and immediately capture an amount on the customer's card
 * refund($options) - refund an already processed transaction
 
+* checkout($options) - iyzico host payment method
+* checkout_status($options) - iyzico host payment method status
+
 For general usage instructions, please see the main [Omnipay](https://github.com/thephpleague/omnipay)
 repository.
 
@@ -70,6 +73,8 @@ PHPUnit is a programmer-oriented testing framework for PHP. It is an instance of
     purchase.php
     refund.php
     void.php
+
+    checkout.php (iyzico host)
 
 ## Support
 
