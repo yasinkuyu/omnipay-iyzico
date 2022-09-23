@@ -24,6 +24,8 @@ Ay ve yıl olarak herhangi bir ileri değer verebilirsiniz. Cvv içinde aynı ş
 
 ## Installation
 
+    composer require league/omnipay iyzico/iyzipay-php yasinkuyu/omnipay-iyzico
+
 Omnipay is installed via [Composer](http://getcomposer.org/). To install, simply add it
 to your `composer.json` file:
 
