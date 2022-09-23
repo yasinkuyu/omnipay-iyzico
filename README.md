@@ -71,6 +71,9 @@ PHPUnit is a programmer-oriented testing framework for PHP. It is an instance of
 
     require_once('vendor/autoload.php');
 
+
+Composer dependencies require a PHP version ">= 8.1.0"
+
 ## Sample App
         
     purchase.php
