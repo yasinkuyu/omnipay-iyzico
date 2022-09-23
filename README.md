@@ -30,7 +30,7 @@ to your `composer.json` file:
 ```json
 {
     "require": {
-        "yasinkuyu/omnipay-iyzico": "~2.0"
+        "yasinkuyu/omnipay-iyzico": "~3.0"
     }
 }
 ```

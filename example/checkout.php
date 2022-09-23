@@ -5,8 +5,8 @@
  $response = $gateway->checkout(
  [
      'enabled_installments' => array(1,2,3,4,5,6,7,8,9),
-     'conversationId'=> '123456', # conversationId
-     'amount'        => 9.00,
+     'conversationId'=> '123123', # replace conversationId
+     'amount'        => 17.00,
      'currency'      => 'TRY',
      'card'          => $options,
 
@@ -19,7 +19,7 @@
          array(
              'id' => 1,
              'name' => 10,
-             'price' => 9.00, // product totals must be equal to *amount*
+             'price' => 17.00, // product totals must be equal to *amount*
              'description' => 'Product 1 Desc',
              'quantity' => 2
          )

@@ -4,8 +4,8 @@
 
  $response = $gateway->checkout_status(
  [
-     'token' => "21772e3b-0eb6-46c2-8499-a40d66253f2e",
-     'conversationId'=> '123456',
+     'token' => "9ace99f2-2a49-4d25-9018-8f14da58a007",
+     'conversationId'=> '123123',
  ]
  )->send();
  
