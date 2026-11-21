@@ -1,0 +1,4 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"status":"success","locale":"tr","paymentId":"39048348","paymentTransactionId":"41021144","price":30,"currency":"TRY"}

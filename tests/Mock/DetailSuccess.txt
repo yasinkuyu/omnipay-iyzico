@@ -1,0 +1,4 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"status":"success","locale":"tr","conversationId":"SIP1","price":149.9,"paidPrice":149.9,"installment":1,"paymentId":"39048348","fraudStatus":1,"binNumber":"552879","lastFourDigits":"0008","cardFamily":"Paraf","basketId":"SIP1","currency":"TRY","paymentStatus":"SUCCESS","itemTransactions":[{"itemId":"L1","paymentTransactionId":"41021144","transactionStatus":2,"price":100,"paidPrice":100},{"itemId":"L2","paymentTransactionId":"41021145","transactionStatus":2,"price":49.9,"paidPrice":49.9}],"token":"c96a5d2c"}

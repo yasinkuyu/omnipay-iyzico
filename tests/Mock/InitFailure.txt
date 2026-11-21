@@ -1,0 +1,4 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"status":"failure","errorCode":"5077","errorMessage":"Marketplace üye işyeri için ürün ödemesinde bütün sepet kırılımlarında subMerchantKey gönderilmelidir","locale":"tr","conversationId":"SIP1"}

@@ -1,107 +1,167 @@
-# Omnipay: Iyzico
+# Omnipay: iyzico
 
-**Iyzico gateway for Omnipay payment processing library**
+**iyzico için [Omnipay](https://github.com/thephpleague/omnipay) sürücüsü**
 
-[![Latest Stable Version](https://poser.pugx.org/yasinkuyu/omnipay-iyzico/v/stable)](https://packagist.org/packages/yasinkuyu/omnipay-iyzico) 
-[![Total Downloads](https://poser.pugx.org/yasinkuyu/omnipay-iyzico/downloads)](https://packagist.org/packages/yasinkuyu/omnipay-iyzico) 
-[![Latest Unstable Version](https://poser.pugx.org/yasinkuyu/omnipay-iyzico/v/unstable)](https://packagist.org/packages/yasinkuyu/omnipay-iyzico) 
+[![Latest Stable Version](https://poser.pugx.org/yasinkuyu/omnipay-iyzico/v/stable)](https://packagist.org/packages/yasinkuyu/omnipay-iyzico)
+[![Total Downloads](https://poser.pugx.org/yasinkuyu/omnipay-iyzico/downloads)](https://packagist.org/packages/yasinkuyu/omnipay-iyzico)
 [![License](https://poser.pugx.org/yasinkuyu/omnipay-iyzico/license)](https://packagist.org/packages/yasinkuyu/omnipay-iyzico)
 
-[Omnipay](https://github.com/thephpleague/omnipay) is a framework agnostic, multi-gateway payment
-processing library for PHP 5.3+. This package implements Iyzico (Turkish Payment Gateways) support for Omnipay.
+**Türkçe** | [English](README_EN.md)
 
-# Readme TR
-Iyzico v3 (3D Secure) sanal pos hizmeti için omnipay kütüphanesi.
+## Bu paket ne yapar?
 
-Test ortamım için https://sandbox-merchant.iyzipay.com/auth adresinden kayıt olup hemen sonrasında(mail onaysız) login olabilirsiniz. 
+Mağazanızda iyzico ile kartla ödeme almanızı sağlar. Müşteri **iyzico'nun Ödeme Formu'na** (ödeme sayfası) gider,
+kartını ve taksitini orada seçer, 3D Secure doğrulamasını yapar ve sitenize döner. Kart bilgisi sizin sunucunuzdan geçmez.
+Ödemenin sonucu, dönüşte gelen jetonla **iyzico'ya sunucudan sorularak** kesinleşir.
 
-Login olduktan sonra karşınıza çıkan “Cep Telefonu Doğrulama” ekranına sms kodu olarak “123456" yazıp giriş sağlayabilirsiniz. Ayarlar sayfasından api anahtarları bölümünden API anahtarı ve güvenlik anahtarı bilgilerine erişebiliyorsunuz. 
+```
+Sunucunuz ──(formu başlat)──▶ iyzico ──▶ ödeme sayfası adresi + jeton
+Müşteri ──▶ iyzico ödeme sayfası (kart + taksit + 3D Secure) ──▶ Siteniz (dönüş, jetonla)
+Sunucunuz ──(jetonla sorgu)──▶ iyzico ──▶ ödeme kesinleşir
+```
 
-Sandbox/test base url https://sandbox-api.iyzipay.com/ set edildiğinde githubdaki clientlarımız
-Test kartları https://dev.iyzipay.com/tr/test-kartlari
+iyzico'nun PHP SDK'sına bağımlı değildir: istekler doğrudan IYZWSv2 ile imzalanır.
 
-Ay ve yıl olarak herhangi bir ileri değer verebilirsiniz. Cvv içinde aynı şekilde 3 haneli random bir değer verebilirsiniz. 3D secure şifresi : 283126
+**Özellikler**
 
-## Installation
+| | |
+|---|---|
+| Ödeme | iyzico Ödeme Formu (Checkout Form) |
+| Taksit | Sunulacak taksitleri siz belirlersiniz (`enabledInstallments`), vade farkını iyzico ekler |
+| İptal / iade | `void()` (aynı gün, tamamı), `refund()` kalem bazında, tam ya da kısmi |
+| Sorgu | `fetchTransaction()` |
+| Pazaryeri | Alt üye iş yeri (`subMerchantKey`) |
 
-    composer require league/omnipay iyzico/iyzipay-php yasinkuyu/omnipay-iyzico
+## Kurulum
 
-Omnipay is installed via [Composer](http://getcomposer.org/). To install, simply add it
-to your `composer.json` file:
+```bash
+composer require yasinkuyu/omnipay-iyzico php-http/guzzle7-adapter
+```
 
-```json
-{
-    "require": {
-        "iyzico/iyzipay-php": "^2.0",
-        "yasinkuyu/omnipay-iyzico": "^3.0"
-    }
+PHP 8.1 ya da üstü gerekir.
+
+## iyzico'dan almanız gereken bilgiler
+
+iyzico panelinde **Ayarlar → Firma Ayarları**: `apiKey` (API anahtarı) ve `secretKey` (güvenlik anahtarı).
+Deneme için sandbox-merchant.iyzipay.com'dan ayrı bir sandbox hesabı açın.
+
+## Hızlı başlangıç
+
+### 1. Gateway'i hazırlayın
+
+```php
+use Omnipay\Omnipay;
+
+$gateway = Omnipay::create('Iyzico');
+$gateway->initialize([
+    'apiKey'    => 'sandbox-…',
+    'secretKey' => 'sandbox-…',
+    'testMode'  => true,   // canlıya geçerken false
+]);
+```
+
+### 2. Ödemeyi başlatın (odeme.php)
+
+```php
+$response = $gateway->purchase([
+    'amount'              => '149.90',
+    'currency'            => 'TRY',
+    'transactionId'       => 'SIP-10045',                       // sizin sipariş numaranız (basketId)
+    'returnUrl'           => 'https://magaza.com/odeme-donus.php',
+    'clientIp'            => $_SERVER['REMOTE_ADDR'],
+    'enabledInstallments' => [1, 2, 3, 6],
+    'identityNumber'      => '11111111111',                    // alıcı TCKN (yoksa bu değer gider)
+    'card'  => ['email' => 'ali@ornek.com', 'billingFirstName' => 'Ali', 'billingLastName' => 'Kaya',
+                'billingPhone' => '+905551112233', 'billingAddress1' => 'Adres', 'billingCity' => 'Istanbul'],
+    'items' => [['name' => 'Kazak', 'quantity' => 2, 'price' => '50.00'], ['name' => 'Kargo', 'quantity' => 1, 'price' => '49.90']],
+])->send();
+
+if ($response->isRedirect()) {
+    // $response->getToken() saklanabilir
+    $response->redirect();
+} else {
+    echo $response->getMessage();
 }
 ```
 
-And run composer to update your dependencies:
+### 3. Dönüşü doğrulayın (odeme-donus.php)
 
-    $ curl -s http://getcomposer.org/installer | php
-    $ php composer.phar update
+iyzico tarayıcıyı `returnUrl`'e yalnız `token` ile POST eder; paket sonucu iyzico'dan sorgular:
 
-## Basic Usage
+```php
+$result = $gateway->completePurchase([
+    'transactionId' => 'SIP-10045', // KENDİ kaydınızdaki sipariş no
+    'amount'        => '149.90',    // KENDİ kaydınızdaki tutar
+])->send();
 
-The following gateways are provided by this package:
+if ($result->isSuccessful()) {
+    $paymentId = $result->getTransactionReference();   // iptal ve sorgu için saklayın
+    $items     = $result->getItemTransactions();       // [paymentTransactionId => tutar], iade için saklayın
+    $result->getPaidAmount();                          // vade farkı dahil ödenen
+    $result->getInstallment();
+} elseif ($result->isPendingReview()) {
+    // iyzico dolandırıcılık incelemesinde: sonuç sonra kesinleşir
+} else {
+    echo $result->getMessage();
+}
+```
 
-* Iyzico v3
+## İptal, iade, sorgu
 
-Gateway Methods
+```php
+$gateway->void(['transactionReference' => $paymentId, 'clientIp' => $ip])->send();                 // aynı gün, tamamı
+$gateway->refund(['transactionReference' => $paymentTransactionId, 'amount' => '30.00', 'clientIp' => $ip])->send(); // kalem iadesi
+$gateway->fetchTransaction(['transactionReference' => $paymentId])->send()->getData();
+```
 
-* purchase($options) - authorize and immediately capture an amount on the customer's card
-* refund($options) - refund an already processed transaction
+İade kalem (paymentTransactionId) bazındadır ve bir kalemin ödenen tutarını aşamaz; çok kalemli sepette tutarı
+kalemlere bölün. **`isReadable()` false dönerse** yanıt okunamamıştır: işlem gerçekleşmiş olabilir. Otomatik olarak
+yeniden denemeyin (iyzico istekleri yinelemeye dayanıklı değildir); iyzico panelinden kontrol edin.
 
-* checkout($options) - iyzico host payment method
-* checkout_status($options) - iyzico host payment method status
+## Pazaryeri (alt üye iş yeri)
 
-For general usage instructions, please see the main [Omnipay](https://github.com/thephpleague/omnipay)
-repository.
+Hesabınız pazaryeriyse sepet satırları bir alt üye iş yerine bağlanmalıdır: `'subMerchantKey' => '…'` verin; her satıra
+satır tutarı kadar `subMerchantPrice` eklenir.
 
-## Unit Tests
+## Test
 
-PHPUnit is a programmer-oriented testing framework for PHP. It is an instance of the xUnit architecture for unit testing frameworks.
+iyzico sandbox'ında (`testMode => true`) test kartı: `5528 7900 0000 0008`, son kullanma 12/30, CVV `123`.
+Bu sürüm iyzico sandbox'ında uçtan uca denendi: ödeme formu, onaylı ödeme ve sunucudan sorgu, kalem iadesi, iptal.
 
-## Requirements
-    composer require iyzico/iyzipay-php
+## Sık karşılaşılan durumlar
 
-    To use the bindings, use Composer's autoload:
+| Hata | Neden |
+|---|---|
+| `5077` subMerchantKey gönderilmelidir | Hesap pazaryeri hesabı: `subMerchantKey` verin |
+| `1000` / imza hatası | `apiKey` / `secretKey` yanlış ya da sandbox ile canlı karıştı |
+| `5093` iade tutarı büyük olamaz | İade kalemin ödenen tutarını aşıyor |
+| `isVerified()` false | Sorgu başarısız ya da sipariş no / tutar sizin kaydınızla uyuşmuyor |
 
-    require_once('vendor/autoload.php');
+## 3.x'ten geçiş
 
+4.0 iyzico SDK'sını kaldırdı ve baştan yazıldı: `purchase()` Ödeme Formu'nu başlatır (eski doğrudan kartla satış
+yok), sonuç `completePurchase()` ile sorgulanır, iade kalem bazındadır. Eski sürümü (3.x) kullanmaya devam etmek
+isterseniz: `composer require yasinkuyu/omnipay-iyzico:^3.0`
 
-Composer dependencies require a PHP version ">= 8.1.0"
+## Testler
 
-## Sample App
-        
-    purchase.php
-    refund.php
-    void.php
+```bash
+composer install
+vendor/bin/phpunit
+```
 
-    checkout.php (iyzico host)
+## Diğer Omnipay paketleri
 
-## Other Omnipay packages
+- **[Omnipay: NestPay (EST / Payten)](https://github.com/yasinkuyu/omnipay-nestpay)** — İş Bankası, Akbank, Halkbank, Ziraat, TEB, QNB, ING, Şekerbank, Anadolubank sanal POS'u; 3D Pay Hosting
+- **[Omnipay: GVP (Garanti BBVA)](https://github.com/yasinkuyu/omnipay-gvp)** — Garanti BBVA sanal POS'u; Ortak Ödeme Sayfası
+- **[Omnipay: Akbank](https://github.com/yasinkuyu/omnipay-akbank)** — Akbank sanal POS'u (yeni altyapı); ortak ödeme sayfası
+- **[Omnipay: QNB](https://github.com/yasinkuyu/omnipay-qnb)** — QNB sanal POS'u (PayFor); ortak ödeme sayfası
+- **[Omnipay: Paratika](https://github.com/yasinkuyu/omnipay-paratika)** — Paratika, VakıfPayS ve ZiraatPay ortak ödeme sayfası
+- **[Omnipay: PayTR](https://github.com/yasinkuyu/omnipay-paytr)** — PayTR iFrame ödeme sayfası
+- **[Omnipay: Paycell SDK](https://github.com/yasinkuyu/omnipay-paycell-sdk)** — Turkcell Paycell ödeme sayfası (Web SDK)
+- **[Omnipay: Paycell API](https://github.com/yasinkuyu/omnipay-paycell)** — Turkcell Paycell ödeme API'si
+- **[Omnipay: Posnet](https://github.com/yasinkuyu/omnipay-posnet)** — Yapı Kredi Posnet sanal POS'u
 
-- **[Omnipay: NestPay (EST / Payten)](https://github.com/yasinkuyu/omnipay-nestpay)** — İş Bankası, Akbank, Halkbank, Ziraat, TEB, QNB, ING, Şekerbank, Anadolubank virtual POS; 3D Pay Hosting
-- **[Omnipay: GVP (Garanti BBVA)](https://github.com/yasinkuyu/omnipay-gvp)** — Garanti BBVA virtual POS; hosted payment page
-- **[Omnipay: Akbank](https://github.com/yasinkuyu/omnipay-akbank)** — Akbank virtual POS (new platform); hosted payment page
-- **[Omnipay: QNB](https://github.com/yasinkuyu/omnipay-qnb)** — QNB virtual POS (PayFor); hosted payment page
-- **[Omnipay: Paratika](https://github.com/yasinkuyu/omnipay-paratika)** — Paratika, VakıfPayS and ZiraatPay hosted payment page
-- **[Omnipay: Paycell SDK](https://github.com/yasinkuyu/omnipay-paycell-sdk)** — Turkcell Paycell payment page (Web SDK)
-- **[Omnipay: Paycell API](https://github.com/yasinkuyu/omnipay-paycell)** — Turkcell Paycell payment API
-- **[Omnipay: PayTR](https://github.com/yasinkuyu/omnipay-paytr)** — PayTR virtual POS
-- **[Omnipay: Posnet](https://github.com/yasinkuyu/omnipay-posnet)** — Yapı Kredi Posnet virtual POS
+## Lisans
 
-## Support
-
-If you are having general issues with Omnipay, we suggest posting on
-[Stack Overflow](http://stackoverflow.com/). Be sure to add the
-[omnipay tag](http://stackoverflow.com/questions/tagged/omnipay) so it can be easily found.
-
-If you want to keep up to date with release anouncements, discuss ideas for the project, or ask more detailed questions, there is also a [mailing list](https://groups.google.com/forum/#!forum/omnipay) which
-you can subscribe to.
-
-If you believe you have found a bug, please report it using the [GitHub issue tracker](https://github.com/yasinkuyu/omnipay-iyzico/issues),
-or better yet, fork the library and submit a pull request.
+MIT — [Yasin Kuyu](https://github.com/yasinkuyu)

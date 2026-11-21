@@ -1,0 +1,4 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"status":"failure","errorCode":"5093","errorMessage":"Ödeme kırılımına ait verilen iade tutarı ve önceden iade edilen toplam tutar kırılımın tutarından büyük olamaz","locale":"tr"}

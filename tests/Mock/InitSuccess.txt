@@ -1,0 +1,4 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"status":"success","locale":"tr","systemTime":1795296000000,"conversationId":"SIP1","token":"c96a5d2c-7a13-497f-a704-d0b90eec64c0","tokenExpireTime":1800,"paymentPageUrl":"https://sandbox-cpp.iyzipay.com/?token=c96a5d2c-7a13-497f-a704-d0b90eec64c0&lang=tr"}
