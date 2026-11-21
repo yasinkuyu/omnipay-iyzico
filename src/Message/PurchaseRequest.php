@@ -1,240 +1,121 @@
 <?php
 
 namespace Omnipay\Iyzico\Message;
-use Omnipay\Common\Message\AbstractRequest;
 
 /**
- * Iyzico Purchase Request
- * 
- * (c) Yasin Kuyu
- * 2015, insya.com
- * http://www.github.com/yasinkuyu/omnipay-iyzico
+ * Ödeme formunu başlatır (checkoutform/initialize/auth/ecom).
+ *
+ * Parametreler: amount, currency, transactionId (conversationId ve basketId), returnUrl (callbackUrl), clientIp,
+ * card (ad, soyad, e-posta, telefon, fatura / teslimat adresi, şehir, ülke), items (sepet; yoksa tek satır),
+ * enabledInstallments ([1, 2, 3, 6, 9] gibi), identityNumber (alıcı TCKN; yoksa 11111111111), buyerId, locale (tr | en).
+ * Pazaryeri hesabı: subMerchantKey (tüm satırlar o alt üye iş yerine; satır tutarı kadar subMerchantPrice) ya da
+ * satır başına items[].subMerchantKey / subMerchantPrice (ItemBag yerine dizi verildiğinde).
  */
-class PurchaseRequest extends AbstractRequest {
+class PurchaseRequest extends AbstractRequest
+{
+    public function getEnabledInstallments() { return $this->getParameter('enabledInstallments'); }
+    public function setEnabledInstallments($value) { return $this->setParameter('enabledInstallments', $value); }
 
-    protected $actionType = 'purchase';
+    public function getIdentityNumber() { return $this->getParameter('identityNumber'); }
+    public function setIdentityNumber($value) { return $this->setParameter('identityNumber', $value); }
 
-    protected $endpoints = [
-        'test' => 'https://sandbox-api.iyzipay.com',
-        'live' => 'https://api.iyzipay.com'
-    ];
+    public function getBuyerId() { return $this->getParameter('buyerId'); }
+    public function setBuyerId($value) { return $this->setParameter('buyerId', $value); }
 
-    public function getData() {}
- 
-    public function sendData($data) {
-        
-        $this->validate('card');
-        $this->getCard()->validate();
+    public function getSubMerchantKey() { return $this->getParameter('subMerchantKey'); }
+    public function setSubMerchantKey($value) { return $this->setParameter('subMerchantKey', $value); }
 
-        $card = $this->getCard();
-        $mode = $this->getTestMode() ? "test" : "live";
+    public function getData(): array
+    {
+        $this->validate('amount', 'transactionId', 'returnUrl', 'card');
+        $c = $this->getCard();
+        $first = trim((string) $c->getBillingFirstName()) ?: 'Musteri';
+        $last = trim((string) $c->getBillingLastName()) ?: $first;
+        $addr = fn ($a1, $a2) => mb_substr(trim($a1 . ' ' . $a2) ?: 'Adres belirtilmedi', 0, 250);
+        $city = trim((string) $c->getBillingCity()) ?: 'Istanbul';
+        $country = $this->country((string) $c->getBillingCountry());
+        $sCity = trim((string) $c->getShippingCity()) ?: $city;
+        $sCountry = $c->getShippingCountry() ? $this->country((string) $c->getShippingCountry()) : $country;
+        $tc = preg_replace('/\D/', '', (string) $this->getIdentityNumber());
+        $inst = array_values(array_unique(array_filter(array_map('intval', (array) ($this->getEnabledInstallments() ?: [1])), fn ($n) => $n >= 1 && $n <= 12)));
+        $total = self::price($this->getAmount());
 
-        $options = new \Iyzipay\Options();
-        $options->setApiKey($this->getApiId());
-        $options->setSecretKey($this->getSecretKey());
-        $options->setBaseUrl($this->endpoints[$mode]);
+        return [
+            'locale' => (string) ($this->getLocale() ?: 'tr'),
+            'conversationId' => (string) $this->getTransactionId(),
+            'price' => $total,
+            'paidPrice' => $total,
+            'currency' => $this->currencyCode(),
+            'basketId' => (string) $this->getTransactionId(),
+            'paymentGroup' => 'PRODUCT',
+            'callbackUrl' => (string) $this->getReturnUrl(),
+            'enabledInstallments' => $inst ?: [1],
+            'buyer' => [
+                'id' => (string) ($this->getBuyerId() ?: 'B' . $this->getTransactionId()),
+                'name' => $first,
+                'surname' => $last,
+                'gsmNumber' => (string) $c->getBillingPhone(),
+                'email' => (string) $c->getEmail(),
+                'identityNumber' => strlen($tc) === 11 ? $tc : '11111111111',
+                'registrationAddress' => $addr($c->getBillingAddress1(), $c->getBillingAddress2()),
+                'ip' => (string) ($this->getClientIp() ?: '127.0.0.1'),
+                'city' => $city,
+                'country' => $country,
+            ],
+            'shippingAddress' => [
+                'contactName' => trim(($c->getShippingFirstName() ?: $first) . ' ' . ($c->getShippingLastName() ?: $last)),
+                'city' => $sCity,
+                'country' => $sCountry,
+                'address' => $addr($c->getShippingAddress1() ?: $c->getBillingAddress1(), $c->getShippingAddress2() ?: $c->getBillingAddress2()),
+            ],
+            'billingAddress' => [
+                'contactName' => trim($first . ' ' . $last),
+                'city' => $city,
+                'country' => $country,
+                'address' => $addr($c->getBillingAddress1(), $c->getBillingAddress2()),
+            ],
+            'basketItems' => $this->basketItems(),
+        ];
+    }
 
-        $request = new \Iyzipay\Request\CreatePaymentRequest();
-        $request->setLocale(\Iyzipay\Model\Locale::TR);
-        $request->setConversationId($this->getConversationId());
-        $request->setPrice($this->getAmount()); // or getAmountInteger
-        $request->setPaidPrice($this->getAmount());
+    private function country(string $c): string
+    {
+        return $c === '' || in_array(mb_strtolower($c), ['türkiye', 'turkiye', 'tr', 'turkey'], true) ? 'Turkey' : $c;
+    }
 
-        switch ($this->getCurrency()) {
-            case 'USD':
-                $request->setCurrency(\Iyzipay\Model\Currency::USD);
-                break;
-        
-            case 'EUR':
-                $request->setCurrency(\Iyzipay\Model\Currency::EUR);
-                break;
-        
-            case 'GBP':
-                $request->setCurrency(\Iyzipay\Model\Currency::GBP);
-                break;
-                
-            default:
-                $request->setCurrency(\Iyzipay\Model\Currency::TL);
-                break;
-        }
-
-        $request->setInstallment($this->getInstallment());
-        $request->setPaymentChannel(\Iyzipay\Model\PaymentChannel::WEB);
-        $request->setPaymentGroup(\Iyzipay\Model\PaymentGroup::PRODUCT);
-
-        if($this->getSecure3d()){
-            $request->setCallbackUrl($this->getReturnUrl());
-        }
-        
-        $paymentCard = new \Iyzipay\Model\PaymentCard();
-        $paymentCard->setCardHolderName($this->getCard()->getName());
-        $paymentCard->setCardNumber($this->getCard()->getNumber());
-        $paymentCard->setExpireMonth($this->getCard()->getExpiryMonth());
-        $paymentCard->setExpireYear($this->getCard()->getExpiryYear());
-        $paymentCard->setCvc($this->getCard()->getCvv());
-        $paymentCard->setRegisterCard(0);
-        $request->setPaymentCard($paymentCard);
-
-        $buyer = new \Iyzipay\Model\Buyer();
-        $buyer->setId($this->getConversationId());
-        $buyer->setName($card->getFirstName());
-        $buyer->setSurname($card->getLastName());
-        $buyer->setGsmNumber($card->getPhone());
-        $buyer->setEmail($card->getEmail());
-        $buyer->setIdentityNumber($this->getIdentityNumber());
-        $buyer->setLastLoginDate(date('Y-m-d H:i:s'));
-        $buyer->setRegistrationDate(date('Y-m-d H:i:s'));
-        $buyer->setRegistrationAddress($card->getAddress1());
-        $buyer->setIp($this->getClientIp());
-        $buyer->setCity($card->getCity());
-        $buyer->setCountry($card->getCountry());
-        $buyer->setZipCode($card->getPostcode());
-        $request->setBuyer($buyer);
-
-        $shippingAddress = new \Iyzipay\Model\Address();
-        $shippingAddress->setContactName($card->getShippingFirstName() . " " . $card->getShippingLastName());
-        $shippingAddress->setCity($card->getShippingCity());
-        $shippingAddress->setCountry($card->getShippingCountry());
-        $shippingAddress->setAddress($card->getShippingAddress1());
-        $shippingAddress->setZipCode($card->getShippingPostcode());
-        $request->setShippingAddress($shippingAddress);
-
-        $billingAddress = new \Iyzipay\Model\Address();
-        $billingAddress->setContactName($card->getBillingFirstName() . " " . $card->getBillingLastName());
-        $billingAddress->setCity($card->getBillingCity());
-        $billingAddress->setCountry($card->getBillingCountry());
-        $billingAddress->setAddress($card->getBillingAddress1());
-        $billingAddress->setZipCode($card->getBillingPostcode());
-        $request->setBillingAddress($billingAddress);
- 
-        $basketItems = array();
-
-        // List products
-        $items = $this->getItems();
-
-        if (!empty($items)) {
-            foreach ($items as $key => $item) {
-
-                $firstBasketItem = new \Iyzipay\Model\BasketItem();
-                $firstBasketItem->setId($item->getName());
-                $firstBasketItem->setName($item->getName());
-                $firstBasketItem->setCategory1("Genel");
-                $firstBasketItem->setItemType(\Iyzipay\Model\BasketItemType::PHYSICAL);
-                $firstBasketItem->setPrice($item->getPrice());
-                
-                $basketItems[] = $firstBasketItem;
-
+    /** Satırlar (satır tutarı = birim × adet). Toplam tutmazsa tek satır. */
+    private function basketItems(): array
+    {
+        $sub = (string) ($this->getSubMerchantKey() ?? '');
+        $lines = [];
+        $sum = 0.0;
+        $i = 0;
+        foreach ($this->getItems() ?? [] as $item) {
+            $line = round((float) $item->getPrice() * max(1, (int) $item->getQuantity()), 2);
+            if ($line <= 0) {
+                continue;
             }
+            $sum += $line;
+            $lines[] = ['id' => 'L' . (++$i), 'name' => mb_substr((string) $item->getName(), 0, 120) ?: 'Urun', 'category1' => 'Urun',
+                'itemType' => 'PHYSICAL', 'price' => self::price($line)];
         }
-
-        $request->setBasketItems($basketItems);
-        
-        if($this->getSecure3d()){ //3d
-            $data = \Iyzipay\Model\ThreedsInitialize::create($request, $options);
-        }else{
-            $data = \Iyzipay\Model\Payment::create($request, $options);
+        if (!$lines || abs($sum - (float) $this->getAmount()) >= 0.01) {
+            $lines = [['id' => 'ORDER', 'name' => (string) ($this->getDescription() ?: 'Siparis ' . $this->getTransactionId()),
+                'category1' => 'Urun', 'itemType' => 'PHYSICAL', 'price' => self::price($this->getAmount())]];
         }
-
-        $this->response = new Response($this, $data);
-
-        if($data->getStatus() == "success"){
-
-            // display 3ds form
-            if($this->getSecure3d()){
-                echo $data->getHtmlContent(); 
+        if ($sub !== '') {
+            foreach ($lines as &$l) {
+                $l['subMerchantKey'] = $sub;
+                $l['subMerchantPrice'] = $l['price'];
             }
+            unset($l);
         }
 
-        return $this->response;
-
-    }
- 
-    public function getConversationId() {
-        return $this->getParameter('conversationId');
+        return $lines;
     }
 
-    public function setConversationId($value) {
-        return $this->setParameter('conversationId', $value);
+    public function sendData($data): PurchaseResponse
+    {
+        return $this->response = new PurchaseResponse($this, $this->call('/payment/iyzipos/checkoutform/initialize/auth/ecom', $data));
     }
-
-    public function getPaymentId() {
-        return $this->getParameter('paymentId');
-    }
-
-    public function setPaymentId($value) {
-        return $this->setParameter('paymentId', $value);
-    }
-
-    public function getPaymentTransactionId() {
-        return $this->getParameter('paymentTransactionId');
-    }
-
-    public function setPaymentTransactionId($value) {
-        return $this->setParameter('paymentTransactionId', $value);
-    }
-
-    public function getIdentityNumber() {
-        return $this->getParameter('identityNumber');
-    }
-
-    public function setIdentityNumber($value) {
-        return $this->setParameter('identityNumber', $value);
-    }
-
-    public function getSecure3d() {
-        return $this->getParameter('secure3d');
-    }
-
-    public function setSecure3d($value) {
-        return $this->setParameter('secure3d', $value);
-    }
-
-    public function getBank() {
-        return $this->getParameter('bank');
-    }
-
-    public function setBank($value) {
-        return $this->setParameter('bank', $value);
-    }
-
-    public function getApiId() {
-        return $this->getParameter('apiId');
-    }
-
-    public function setApiId($value) {
-        return $this->setParameter('apiId', $value);
-    }
-
-    public function getSecretKey() {
-        return $this->getParameter('secretKey');
-    }
-
-    public function setSecretKey($value) {
-        return $this->setParameter('secretKey', $value);
-    }
-
-    public function getInstallment() {
-        return $this->getParameter('installment');
-    }
-
-    public function setInstallment($value) {
-        return $this->setParameter('installment', $value);
-    }
-
-    public function getEnabledInstallments() {
-        return $this->getParameter('enabled_installments');
-    }
-
-    public function setEnabledInstallments($value) {
-        return $this->setParameter('enabled_installments', $value);
-    }
-
-    public function getType() {
-        return $this->getParameter('type');
-    }
-
-    public function setType($value) {
-        return $this->setParameter('type', $value);
-    }
- 
 }

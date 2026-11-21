@@ -2,40 +2,19 @@
 
 namespace Omnipay\Iyzico\Message;
 
-use Omnipay\Common\Message\AbstractRequest;
+/** İptal (aynı gün, tamamı; ekstrede görünmez): transactionReference (paymentId), clientIp */
+class VoidRequest extends AbstractRequest
+{
+    public function getData(): array
+    {
+        $this->validate('transactionReference');
 
-/**
- * Iyzico Void Request
- * 
- * (c) Yasin Kuyu
- * 2015, insya.com
- * http://www.github.com/yasinkuyu/omnipay-iyzico
- */
-class VoidRequest extends PurchaseRequest {
-    
-    protected $actionType = 'void';
-
-    public function sendData($data) {
-        
-        $mode = $this->getTestMode() ? "test" : "live";
-
-        $options = new \Iyzipay\Options();
-        $options->setApiKey($this->getApiId());
-        $options->setSecretKey($this->getSecretKey());
-        $options->setBaseUrl($this->endpoints[$mode]);
-
-        $request = new \Iyzipay\Request\CreateCancelRequest();
-        $request->setLocale(\Iyzipay\Model\Locale::TR);
-        $request->setConversationId($this->getConversationId());
-        $request->setPaymentId($this->getPaymentId());
-        $request->setIp($this->getClientIp());
-
-        $data = \Iyzipay\Model\Cancel::create($request, $options);
-         
-        $this->response = new Response($this, $data);
-
-        return $this->response;
-
+        return ['locale' => (string) ($this->getLocale() ?: 'tr'), 'conversationId' => (string) ($this->getTransactionId() ?? ''),
+            'paymentId' => (string) $this->getTransactionReference(), 'ip' => (string) ($this->getClientIp() ?: '127.0.0.1')];
     }
- 
+
+    public function sendData($data): ApiResponse
+    {
+        return $this->response = new ApiResponse($this, $this->call('/payment/cancel', $data));
+    }
 }

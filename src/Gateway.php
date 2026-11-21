@@ -3,134 +3,62 @@
 namespace Omnipay\Iyzico;
 
 use Omnipay\Common\AbstractGateway;
+use Omnipay\Iyzico\Message\CompletePurchaseRequest;
+use Omnipay\Iyzico\Message\FetchTransactionRequest;
+use Omnipay\Iyzico\Message\PurchaseRequest;
+use Omnipay\Iyzico\Message\RefundRequest;
+use Omnipay\Iyzico\Message\VoidRequest;
 
 /**
- * Iyzico Gateway
- * 
- * (c) Yasin Kuyu
- * 2015, insya.com
- * http://www.github.com/yasinkuyu/omnipay-iyzico
+ * iyzico Ödeme Formu (Checkout Form), SDK'sız: istekler IYZWSv2 ile imzalanır.
+ *
+ * purchase()          ödeme formunu başlatır; yanıt müşteriyi iyzico'nun ödeme sayfasına GET ile götürür.
+ * completePurchase()  dönüşte gelen jetonla sonucu iyzico'dan SUNUCUDAN sorgular (tarayıcıdan gelen bilgiye güvenilmez).
+ * void()              ödemeyi iptal eder (aynı gün, tam tutar); refund() kalem (paymentTransactionId) bazında iade.
+ * fetchTransaction()  ödeme ayrıntısı.
+ *
+ * (c) Yasin Kuyu — https://github.com/yasinkuyu/omnipay-iyzico
  */
-class Gateway extends AbstractGateway {
-
-    public function getName() {
+class Gateway extends AbstractGateway
+{
+    public function getName(): string
+    {
         return 'Iyzico';
     }
 
-    public function getDefaultParameters() {
-        return array(
-            'apiid' => '',
-            'secretkey' => '',
-            'installment' => '',
-            'token' => '',
-            'enabled_installments' => array(2, 3, 6, 9),
-            'currency' => 'TRY',
-            'orderId' => rand(),
-            'testMode' => false,
-            'secure3d' => true,
-            'identityNumber' => '',
-            'returnUrl' => 'http://google.com'
-        );
+    public function getDefaultParameters(): array
+    {
+        return ['apiKey' => '', 'secretKey' => '', 'testMode' => false];
     }
 
-    public function authorize(array $parameters = array()) {
-        return $this->createRequest('\Omnipay\Iyzico\Message\AuthorizeRequest', $parameters);
+    public function getApiKey() { return $this->getParameter('apiKey'); }
+    public function setApiKey($value): self { return $this->setParameter('apiKey', $value); }
+
+    public function getSecretKey() { return $this->getParameter('secretKey'); }
+    public function setSecretKey($value): self { return $this->setParameter('secretKey', $value); }
+
+    public function purchase(array $options = []): PurchaseRequest
+    {
+        return $this->createRequest(PurchaseRequest::class, $options);
     }
 
-    public function capture(array $parameters = array()) {
-        return $this->createRequest('\Omnipay\Iyzico\Message\CaptureRequest', $parameters);
+    public function completePurchase(array $options = []): CompletePurchaseRequest
+    {
+        return $this->createRequest(CompletePurchaseRequest::class, $options);
     }
 
-    public function purchase(array $parameters = array()) {
-        return $this->createRequest('\Omnipay\Iyzico\Message\PurchaseRequest', $parameters);
+    public function void(array $options = []): VoidRequest
+    {
+        return $this->createRequest(VoidRequest::class, $options);
     }
 
-    public function checkout(array $parameters = array()) {
-        return $this->createRequest('\Omnipay\Iyzico\Message\CheckoutRequest', $parameters);
+    public function refund(array $options = []): RefundRequest
+    {
+        return $this->createRequest(RefundRequest::class, $options);
     }
 
-    public function checkout_status(array $parameters = array()) {
-        return $this->createRequest('\Omnipay\Iyzico\Message\CheckoutStatusRequest', $parameters);
+    public function fetchTransaction(array $options = []): FetchTransactionRequest
+    {
+        return $this->createRequest(FetchTransactionRequest::class, $options);
     }
-
-    public function refund(array $parameters = array()) {
-        return $this->createRequest('\Omnipay\Iyzico\Message\RefundRequest', $parameters);
-    }
-
-    public function void(array $parameters = array()) {
-        return $this->createRequest('\Omnipay\Iyzico\Message\VoidRequest', $parameters);
-    }
-
-    public function getApiId() {
-        return $this->getParameter('apiId');
-    }
-
-    public function setApiId($value) {
-        return $this->setParameter('apiId', $value);
-    }
-
-    public function getSecretKey() {
-        return $this->getParameter('secretKey');
-    }
-
-    public function setSecretKey($value) {
-        return $this->setParameter('secretKey', $value);
-    }
-
-    public function getToken() {
-        return $this->getParameter('token');
-    }
-
-    public function setToken($value) {
-        return $this->setParameter('token', $value);
-    }
-
-    public function getIdentityNumber() {
-        return $this->getParameter('identityNumber');
-    }
-
-    public function setIdentityNumber($value) {
-        return $this->setParameter('identityNumber', $value);
-    }
-
-    public function getInstallment() {
-        return $this->getParameter('installment');
-    }
-
-    public function setInstallment($value) {
-        return $this->setParameter('installment', $value);
-    }
-
-    public function getEnabledInstallments() {
-        return $this->getParameter('enabled_installments');
-    }
-
-    public function setEnabledInstallments($value) {
-        return $this->setParameter('enabled_installments', $value);
-    }
- 
-    public function getType() {
-        return $this->getParameter('type');
-    }
-
-    public function setType($value) {
-        return $this->setParameter('type', $value);
-    }
-
-    public function getOrderId() {
-        return $this->getParameter('orderid');
-    }
-
-    public function setOrderId($value) {
-        return $this->setParameter('orderid', $value);
-    }
-
-    public function getTransId() {
-        return $this->getParameter('transId');
-    }
-
-    public function setTransId($value) {
-        return $this->setParameter('transId', $value);
-    }
-
 }

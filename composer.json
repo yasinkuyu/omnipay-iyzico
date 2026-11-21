@@ -1,47 +1,28 @@
 {
     "name": "yasinkuyu/omnipay-iyzico",
     "type": "library",
-    "description": "Iyzico gateway for Omnipay payment processing library",
-    "keywords": [
-        "posnet",
-        "iyzico",
-        "sanal pos",
-        "gateway",
-        "merchant",
-        "omnipay",
-        "pay",
-        "payment"
-    ],
+    "description": "iyzico gateway for Omnipay: Checkout Form (hosted payment page), server-side result retrieval, cancel, refund, payment detail, marketplace sub-merchants. No SDK, IYZWSv2 signing.",
+    "keywords": ["iyzico", "iyzipay", "checkout form", "sanal pos", "odeme", "marketplace", "omnipay", "gateway", "payment"],
     "homepage": "https://github.com/yasinkuyu/omnipay-iyzico",
     "license": "MIT",
     "authors": [
-        {
-            "name": "Yasin Kuyu",
-            "email": "yasinkuyu@gmail.com"
-        },
-        {
-            "name": "Omnipay Contributors",
-            "homepage": "https://github.com/yasinkuyu/omnipay-iyzico/contributors"
-        }
+        {"name": "Yasin Kuyu", "email": "yasinkuyu@gmail.com"},
+        {"name": "Contributors", "homepage": "https://github.com/yasinkuyu/omnipay-iyzico/contributors"}
     ],
-    "autoload": {
-        "psr-4": {
-            "Omnipay\\Iyzico\\": "src/"
-        }
-    },
+    "autoload": {"psr-4": {"Omnipay\\Iyzico\\": "src/"}},
+    "autoload-dev": {"psr-4": {"Omnipay\\Iyzico\\Tests\\": "tests/"}},
     "require": {
-        "omnipay/common": "^3"
+        "php": "^8.1",
+        "ext-json": "*",
+        "omnipay/common": "^3.3"
     },
     "require-dev": {
-        "omnipay/tests": "^3",
-        "squizlabs/php_codesniffer": "^3",
-        "phpro/grumphp": "^0.14"
+        "omnipay/tests": "^4.1",
+        "php-http/guzzle7-adapter": "^1.0",
+        "phpunit/phpunit": "^9.6"
     },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "3.2.x-dev"
-        }
-    },
+    "extra": {"branch-alias": {"dev-4.x": "4.x-dev"}},
+    "config": {"allow-plugins": {"php-http/discovery": true}},
+    "minimum-stability": "dev",
     "prefer-stable": true
-
 }
